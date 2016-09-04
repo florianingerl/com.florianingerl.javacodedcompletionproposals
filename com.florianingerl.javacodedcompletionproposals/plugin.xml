@@ -68,6 +68,14 @@
       
    </javaCompletionProposalComputer>
  </extension>
+ 
+  <extension
+      point = "org.eclipse.ui.preferencePages">
+       <page id="com.florianingerl.javacodedcompletionproposals.templatelistpreferencepage"
+	    class="com.florianingerl.javacodedcompletionproposals.preferencepages.TemplateListPreferencePage"
+            name="Templates with Java code">
+       </page>
+   </extension>
    
 
 </plugin>
