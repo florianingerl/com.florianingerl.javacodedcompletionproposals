@@ -25,4 +25,5 @@ Bundle-ClassPath: lib/aopalliance.jar,
  lib/guice-snapshot.jar,
  lib/javax.inject.jar,
  .,
- lib/commons-io-2.4.jar
+ lib/commons-io-2.4.jar,
+ lib/regex-1.0.2.jar
