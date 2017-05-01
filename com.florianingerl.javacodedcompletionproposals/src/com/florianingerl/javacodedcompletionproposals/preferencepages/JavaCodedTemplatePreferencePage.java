@@ -11,6 +11,8 @@
 package com.florianingerl.javacodedcompletionproposals.preferencepages;
 
 import org.eclipse.jdt.internal.ui.preferences.JavaTemplatePreferencePage;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.window.Window;
 
 import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplatePlugin;
 
@@ -20,6 +22,18 @@ public class JavaCodedTemplatePreferencePage extends JavaTemplatePreferencePage 
 	{
 		setPreferenceStore(JavaCodedTemplatePlugin.getDefault().getPreferenceStore() );
 		setTemplateStore(JavaCodedTemplatePlugin.getDefault().getTemplateStore() );
+	}
+	
+	/*
+	 * @see org.eclipse.ui.texteditor.templates.TemplatePreferencePage#createTemplateEditDialog2(org.eclipse.jface.text.templates.Template, boolean, boolean)
+	 */
+	@Override
+	protected Template editTemplate(Template template, boolean edit, boolean isNameModifiable) {
+		EditJavaCodedTemplateDialog dialog= new EditJavaCodedTemplateDialog(getShell(), template, edit, isNameModifiable, getContextTypeRegistry());
+		if (dialog.open() == Window.OK) {
+			return dialog.getTemplate();
+		}
+		return null;
 	}
 	
 }

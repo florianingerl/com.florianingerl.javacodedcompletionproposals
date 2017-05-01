@@ -2,6 +2,13 @@ package com.florianingerl.javacodedcompletionproposals;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.text.templates.TemplateBuffer;
+import org.eclipse.jface.text.templates.TemplateException;
+import org.eclipse.jface.text.templates.TemplateVariableType;
 import org.junit.Test;
 
 import com.florianingerl.util.regex.Capture;
@@ -48,6 +55,30 @@ public class TemplateTranslatorTest {
 		check(lambda, "(String first)", new String[] {"first"}, body );
 	}
 
+	@Test
+	public void testTranslate() {
+		String pattern = null;
+		try {
+			pattern = IOUtils.toString( getClass(). getClassLoader().getResourceAsStream("resources/Template1.txt" ) );
+		} catch (IOException e) {
+			e.printStackTrace();
+			assertFalse(true);
+		}
+		Template template = new Template("name", "description", "SWT statements", pattern, false) ;
+		TemplateTranslator translator = new TemplateTranslator();
+		try {
+			TemplateBuffer buffer = translator.translate(template);
+		} catch (TemplateException e) {
+			
+			e.printStackTrace();
+			assertTrue(false);
+		}
+		
+	
+		
+		
+		
+	}
 	
 	
 }

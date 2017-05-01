@@ -41,7 +41,7 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 		if (fTemplateStore == null) {
 
 			final IPreferenceStore store = getPreferenceStore();
-			fTemplateStore = new TemplateStore(JavaPlugin.getDefault().getCodeTemplateContextRegistry(), store, TEMPLATES_KEY );
+			fTemplateStore = new TemplateStore(null /*JavaPlugin.getDefault().getCodeTemplateContextRegistry()*/, store, TEMPLATES_KEY );
 
 			try {
 				fTemplateStore.load();
