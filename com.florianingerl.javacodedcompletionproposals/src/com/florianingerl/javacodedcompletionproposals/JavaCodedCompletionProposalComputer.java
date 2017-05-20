@@ -18,6 +18,7 @@ import org.eclipse.jface.text.templates.ContextTypeRegistry;
 import org.eclipse.jface.text.templates.DocumentTemplateContext;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateContext;
+import org.eclipse.jface.text.templates.TemplateContextType;
 
 public class JavaCodedCompletionProposalComputer
 		implements org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer {
@@ -45,9 +46,11 @@ public class JavaCodedCompletionProposalComputer
 					context.getInvocationOffset());
 			List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 
-			TemplateContext tc = new DocumentTemplateContext(null, document, region.getOffset(), region.getLength());
+			ContextTypeRegistry templateContextRegistry = JavaPlugin.getDefault().getTemplateContextRegistry();
 
 			for (Template template : templates) {
+				TemplateContextType tct = templateContextRegistry.getContextType(template.getContextTypeId());
+				TemplateContext tc = new DocumentTemplateContext(tct, document, region.getOffset(), region.getLength());
 				result.add(new JavaCodedCompletionProposal(template, tc, region, null));
 			}
 			return result;

@@ -55,7 +55,7 @@ import com.florianingerl.util.regex.*;
  */
 public class TemplateTranslator {
 
-	private static final File TEMPLATES_STORE_LOCATION = new File("C:/Users/Hermann/Desktop/TemplateStore");
+	static final File TEMPLATES_STORE_LOCATION = new File("C:/Users/Hermann/Desktop/TemplateStore");
 	private Template fTemplate;
 	private StringBuilder sbJavaSrcFile = new StringBuilder();
 	private File javaCompiler = new File("C:\\Program Files\\Java\\jdk1.8.0_92\\bin\\javac.exe");

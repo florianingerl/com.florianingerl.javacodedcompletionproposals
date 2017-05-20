@@ -1,5 +1,10 @@
 package com.florianingerl.javacodedcompletionproposals;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -18,6 +23,7 @@ import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateBuffer;
 import org.eclipse.jface.text.templates.TemplateContext;
 import org.eclipse.jface.text.templates.TemplateException;
+import org.eclipse.jface.text.templates.TemplateVariableResolver;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -110,21 +116,51 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	 */
 	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
 
+		/*
+		 * IDocument document = viewer.getDocument();
+		 * document.set("All the document content got replaced!");
+		 */
+		System.out.println("Replacing the context stuff!");
+
 		IDocument document = viewer.getDocument();
-		document.set("All the document content got replaced!");
-
-		fContext.getContextType().addResolver(new JavaCodedTemplateVariableResolver());
-
-		fContext.setReadOnly(false);
-		int start;
-		TemplateBuffer templateBuffer;
-
-		int oldReplaceOffset = getReplaceOffset();
+		Class<?> c = null;
 		try {
-			// his may already modify the document (e.g. add imports)
+			URL url = TemplateTranslator.TEMPLATES_STORE_LOCATION.toURI().toURL();
+			URL[] urls = new URL[] { url };
+			URLClassLoader classLoader = new URLClassLoader(urls);
+			c = classLoader.loadClass(fTemplate.getName());
 
-			templateBuffer = fContext.evaluate(fTemplate);
-		} catch (TemplateException | BadLocationException e1) {
+			TemplateVariableResolver tvr = new JavaCodedTemplateVariableResolver(c);
+			fContext.getContextType().addResolver(tvr);
+
+			fContext.setReadOnly(false);
+			int start;
+			TemplateBuffer templateBuffer;
+			{
+				int oldReplaceOffset = getReplaceOffset();
+				try {
+					// this may already modify the document (e.g. add imports)
+					// Assert.isTrue(fContext.canEvaluate(fTemplate) );
+					TemplateTranslator translator = new TemplateTranslator();
+					templateBuffer = translator.translate(fTemplate);
+					fContext.getContextType().resolve(templateBuffer, fContext);
+
+				} catch (TemplateException | BadLocationException e1) {
+					fSelectedRegion = fRegion;
+					return;
+				}
+
+				start = getReplaceOffset();
+				int shift = start - oldReplaceOffset;
+				int end = Math.max(getReplaceEndOffset(), offset + shift);
+
+				// insert template string
+				String templateString = templateBuffer.getString();
+				document.replace(start, end - start, templateString);
+			}
+
+		} catch (MalformedURLException | ClassNotFoundException | BadLocationException e) {
+			e.printStackTrace();
 			fSelectedRegion = fRegion;
 			return;
 		}

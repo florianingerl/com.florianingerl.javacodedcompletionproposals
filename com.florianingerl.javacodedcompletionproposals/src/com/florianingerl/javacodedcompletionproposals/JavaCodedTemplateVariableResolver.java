@@ -13,6 +13,12 @@ import org.eclipse.jface.text.templates.TemplateVariableResolver;
 
 public class JavaCodedTemplateVariableResolver extends TemplateVariableResolver {
 
+	private Class<?> clazz;
+
+	public JavaCodedTemplateVariableResolver(Class<?> clazz) {
+		this.clazz = clazz;
+	}
+
 	@Override
 	public String getType() {
 		return "javaCoded";
@@ -23,8 +29,6 @@ public class JavaCodedTemplateVariableResolver extends TemplateVariableResolver 
 		Assert.isTrue(tv.getVariableType().getName().equals("javaCoded"));
 
 		try {
-
-			Class<?> clazz = null;
 			Method m = clazz.getMethod(tv.getName());
 			List<String> argumentNames = Stream.of(m.getTypeParameters()).map((TypeVariable<Method> tvm) -> {
 				return tvm.getName();
