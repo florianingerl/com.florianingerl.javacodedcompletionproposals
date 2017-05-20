@@ -22,6 +22,8 @@ import org.eclipse.jface.text.IDocumentExtension.IReplace;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.link.InclusivePositionUpdater;
+import org.eclipse.jface.text.link.LinkedPosition;
 
 /**
  * The model for linked mode, umbrellas several {@link LinkedPositionGroup}s.

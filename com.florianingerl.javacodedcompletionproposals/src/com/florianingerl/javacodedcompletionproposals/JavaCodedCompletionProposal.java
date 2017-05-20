@@ -7,11 +7,14 @@ import java.net.URLClassLoader;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension2;
@@ -19,10 +22,13 @@ import org.eclipse.jface.text.contentassist.ICompletionProposalExtension3;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.link.InclusivePositionUpdater;
+import org.eclipse.jface.text.link.LinkedPosition;
+import org.eclipse.jface.text.link.ProposalPosition;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateBuffer;
 import org.eclipse.jface.text.templates.TemplateContext;
 import org.eclipse.jface.text.templates.TemplateException;
+import org.eclipse.jface.text.templates.TemplateVariable;
 import org.eclipse.jface.text.templates.TemplateVariableResolver;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
@@ -159,72 +165,137 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 				document.replace(start, end - start, templateString);
 			}
 
-		} catch (MalformedURLException | ClassNotFoundException | BadLocationException e) {
-			e.printStackTrace();
+			// translate positions
+			LinkedModeModel model = new LinkedModeModel();
+			TemplateVariable[] variables = templateBuffer.getVariables();
+			boolean hasPositions = false;
+			for (int i = 0; i != variables.length; i++) {
+				TemplateVariable variable = variables[i];
+
+				if (variable.isUnambiguous())
+					continue;
+
+				LinkedPositionGroup group = new LinkedPositionGroup();
+
+				int[] offsets = variable.getOffsets();
+				int length = variable.getLength();
+
+				LinkedPosition first = new LinkedPosition(document, offsets[0] + start, length);
+				/*{
+					String[] values = variable.getValues();
+					ICompletionProposal[] proposals = new ICompletionProposal[values.length];
+					for (int j = 0; j < values.length; j++) {
+						ensurePositionCategoryInstalled(document, model);
+						Position pos = new Position(offsets[0] + start, length);
+						document.addPosition(getCategory(), pos);
+						proposals[j] = new PositionBasedCompletionProposal(values[j], pos, length);
+					}
+
+					if (proposals.length > 1)
+						first = new ProposalPosition(document, offsets[0] + start, length, proposals);
+					else
+						first = new LinkedPosition(document, offsets[0] + start, length);
+				}*/
+
+				for (int j = 0; j != offsets.length; j++)
+					if (j == 0)
+						group.addPosition(first);
+					else
+						group.addPosition(new LinkedPosition(document, offsets[j] + start, length));
+
+				model.addGroup(group);
+				hasPositions = true;
+			}
+
+			if (hasPositions) {
+				model.forceInstall();
+				LinkedModeUI ui = new LinkedModeUI(model, viewer);
+				ui.setExitPosition(viewer, getCaretOffset(templateBuffer) + start, 0, Integer.MAX_VALUE);
+				ui.enter();
+
+				fSelectedRegion = ui.getSelectedRegion();
+			} else {
+				ensurePositionCategoryRemoved(document);
+				fSelectedRegion = new Region(getCaretOffset(templateBuffer) + start, 0);
+			}
+
+		} catch (BadLocationException e) {
+			openErrorDialog(viewer.getTextWidget().getShell(), e);
+			ensurePositionCategoryRemoved(document);
 			fSelectedRegion = fRegion;
-			return;
+		} catch (BadPositionCategoryException e) {
+			openErrorDialog(viewer.getTextWidget().getShell(), e);
+			fSelectedRegion = fRegion;
 		}
 
-		/*
-		 * try { fContext.setReadOnly(false); int start; TemplateBuffer
-		 * templateBuffer; { int oldReplaceOffset= getReplaceOffset(); try { //
-		 * this may already modify the document (e.g. add imports)
-		 * templateBuffer= fContext.evaluate(fTemplate); } catch
-		 * (TemplateException e1) { fSelectedRegion= fRegion; return; }
-		 * 
-		 * start= getReplaceOffset(); int shift= start - oldReplaceOffset; int
-		 * end= Math.max(getReplaceEndOffset(), offset + shift);
-		 * 
-		 * // insert template string String templateString=
-		 * templateBuffer.getString(); document.replace(start, end - start,
-		 * templateString); }
-		 * 
-		 * // translate positions LinkedModeModel model= new LinkedModeModel();
-		 * TemplateVariable[] variables= templateBuffer.getVariables(); boolean
-		 * hasPositions= false; for (int i= 0; i != variables.length; i++) {
-		 * TemplateVariable variable= variables[i];
-		 * 
-		 * if (variable.isUnambiguous()) continue;
-		 * 
-		 * LinkedPositionGroup group= new LinkedPositionGroup();
-		 * 
-		 * int[] offsets= variable.getOffsets(); int length=
-		 * variable.getLength();
-		 * 
-		 * LinkedPosition first; { String[] values= variable.getValues();
-		 * ICompletionProposal[] proposals= new
-		 * ICompletionProposal[values.length]; for (int j= 0; j < values.length;
-		 * j++) { ensurePositionCategoryInstalled(document, model); Position
-		 * pos= new Position(offsets[0] + start, length);
-		 * document.addPosition(getCategory(), pos); proposals[j]= new
-		 * PositionBasedCompletionProposal(values[j], pos, length); }
-		 * 
-		 * if (proposals.length > 1) first= new ProposalPosition(document,
-		 * offsets[0] + start, length, proposals); else first= new
-		 * LinkedPosition(document, offsets[0] + start, length); }
-		 * 
-		 * for (int j= 0; j != offsets.length; j++) if (j == 0)
-		 * group.addPosition(first); else group.addPosition(new
-		 * LinkedPosition(document, offsets[j] + start, length));
-		 * 
-		 * model.addGroup(group); hasPositions= true; }
-		 * 
-		 * if (hasPositions) { model.forceInstall(); LinkedModeUI ui= new
-		 * LinkedModeUI(model, viewer); ui.setExitPosition(viewer,
-		 * getCaretOffset(templateBuffer) + start, 0, Integer.MAX_VALUE);
-		 * ui.enter();
-		 * 
-		 * fSelectedRegion= ui.getSelectedRegion(); } else {
-		 * ensurePositionCategoryRemoved(document); fSelectedRegion= new
-		 * Region(getCaretOffset(templateBuffer) + start, 0); }
-		 * 
-		 * } catch (BadLocationException e) {
-		 * openErrorDialog(viewer.getTextWidget().getShell(), e);
-		 * ensurePositionCategoryRemoved(document); fSelectedRegion= fRegion; }
-		 * catch (BadPositionCategoryException e) {
-		 * openErrorDialog(viewer.getTextWidget().getShell(), e);
-		 * fSelectedRegion= fRegion; }
-		 */
+	}catch(MalformedURLException|ClassNotFoundException|
+
+	BadLocationException e)
+	{
+		e.printStackTrace();
+		fSelectedRegion = fRegion;
+		return;
+	}
+
+	/*
+	 * try { fContext.setReadOnly(false); int start; TemplateBuffer
+	 * templateBuffer; { int oldReplaceOffset= getReplaceOffset(); try { // this
+	 * may already modify the document (e.g. add imports) templateBuffer=
+	 * fContext.evaluate(fTemplate); } catch (TemplateException e1) {
+	 * fSelectedRegion= fRegion; return; }
+	 * 
+	 * start= getReplaceOffset(); int shift= start - oldReplaceOffset; int end=
+	 * Math.max(getReplaceEndOffset(), offset + shift);
+	 * 
+	 * // insert template string String templateString=
+	 * templateBuffer.getString(); document.replace(start, end - start,
+	 * templateString); }
+	 * 
+	 * // translate positions LinkedModeModel model= new LinkedModeModel();
+	 * TemplateVariable[] variables= templateBuffer.getVariables(); boolean
+	 * hasPositions= false; for (int i= 0; i != variables.length; i++) {
+	 * TemplateVariable variable= variables[i];
+	 * 
+	 * if (variable.isUnambiguous()) continue;
+	 * 
+	 * LinkedPositionGroup group= new LinkedPositionGroup();
+	 * 
+	 * int[] offsets= variable.getOffsets(); int length= variable.getLength();
+	 * 
+	 * LinkedPosition first; { String[] values= variable.getValues();
+	 * ICompletionProposal[] proposals= new ICompletionProposal[values.length];
+	 * for (int j= 0; j < values.length; j++) {
+	 * ensurePositionCategoryInstalled(document, model); Position pos= new
+	 * Position(offsets[0] + start, length); document.addPosition(getCategory(),
+	 * pos); proposals[j]= new PositionBasedCompletionProposal(values[j], pos,
+	 * length); }
+	 * 
+	 * if (proposals.length > 1) first= new ProposalPosition(document,
+	 * offsets[0] + start, length, proposals); else first= new
+	 * LinkedPosition(document, offsets[0] + start, length); }
+	 * 
+	 * for (int j= 0; j != offsets.length; j++) if (j == 0)
+	 * group.addPosition(first); else group.addPosition(new
+	 * LinkedPosition(document, offsets[j] + start, length));
+	 * 
+	 * model.addGroup(group); hasPositions= true; }
+	 * 
+	 * if (hasPositions) { model.forceInstall(); LinkedModeUI ui= new
+	 * LinkedModeUI(model, viewer); ui.setExitPosition(viewer,
+	 * getCaretOffset(templateBuffer) + start, 0, Integer.MAX_VALUE);
+	 * ui.enter();
+	 * 
+	 * fSelectedRegion= ui.getSelectedRegion(); } else {
+	 * ensurePositionCategoryRemoved(document); fSelectedRegion= new
+	 * Region(getCaretOffset(templateBuffer) + start, 0); }
+	 * 
+	 * } catch (BadLocationException e) {
+	 * openErrorDialog(viewer.getTextWidget().getShell(), e);
+	 * ensurePositionCategoryRemoved(document); fSelectedRegion= fRegion; }
+	 * catch (BadPositionCategoryException e) {
+	 * openErrorDialog(viewer.getTextWidget().getShell(), e); fSelectedRegion=
+	 * fRegion; }
+	 */
 
 	}
 
