@@ -14,6 +14,10 @@ import org.eclipse.jface.text.contentassist.ICompletionProposalExtension3;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.link.InclusivePositionUpdater;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.text.templates.TemplateBuffer;
+import org.eclipse.jface.text.templates.TemplateContext;
+import org.eclipse.jface.text.templates.TemplateException;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -21,7 +25,8 @@ import org.eclipse.swt.graphics.Point;
 public class JavaCodedCompletionProposal implements ICompletionProposal, ICompletionProposalExtension,
 		ICompletionProposalExtension2, ICompletionProposalExtension3, ICompletionProposalExtension6 {
 
-	private final TemplateWithJavaCode fTemplate;
+	private final Template fTemplate;
+	private final TemplateContext fContext;
 	private final Image fImage;
 	private final IRegion fRegion;
 	private int fRelevance;
@@ -39,8 +44,8 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	 * @param image
 	 *            the icon of the proposal.
 	 */
-	public JavaCodedCompletionProposal(TemplateWithJavaCode template, IRegion region, Image image) {
-		this(template, region, image, 0);
+	public JavaCodedCompletionProposal(Template template, TemplateContext context, IRegion region, Image image) {
+		this(template, context, region, image, 0);
 	}
 
 	/**
@@ -57,11 +62,14 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	 * @param relevance
 	 *            the relevance of the proposal
 	 */
-	public JavaCodedCompletionProposal(TemplateWithJavaCode template, IRegion region, Image image, int relevance) {
+	public JavaCodedCompletionProposal(Template template, TemplateContext context, IRegion region, Image image,
+			int relevance) {
 		Assert.isNotNull(template);
+		Assert.isNotNull(context);
 		Assert.isNotNull(region);
 
 		fTemplate = template;
+		fContext = context;
 		fImage = image;
 		fRegion = region;
 
@@ -104,6 +112,22 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 
 		IDocument document = viewer.getDocument();
 		document.set("All the document content got replaced!");
+
+		fContext.getContextType().addResolver(new JavaCodedTemplateVariableResolver());
+
+		fContext.setReadOnly(false);
+		int start;
+		TemplateBuffer templateBuffer;
+
+		int oldReplaceOffset = getReplaceOffset();
+		try {
+			// his may already modify the document (e.g. add imports)
+
+			templateBuffer = fContext.evaluate(fTemplate);
+		} catch (TemplateException | BadLocationException e1) {
+			fSelectedRegion = fRegion;
+			return;
+		}
 
 		/*
 		 * try { fContext.setReadOnly(false); int start; TemplateBuffer

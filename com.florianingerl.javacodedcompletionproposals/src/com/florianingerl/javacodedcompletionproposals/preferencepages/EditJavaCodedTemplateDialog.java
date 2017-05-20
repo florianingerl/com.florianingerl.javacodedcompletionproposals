@@ -1,6 +1,7 @@
 package com.florianingerl.javacodedcompletionproposals.preferencepages;
 
 import org.eclipse.jdt.internal.ui.preferences.EditTemplateDialog;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.templates.ContextTypeRegistry;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateException;
@@ -14,20 +15,25 @@ public class EditJavaCodedTemplateDialog extends EditTemplateDialog {
 			ContextTypeRegistry registry) {
 		super(parent, template, edit, isNameModifiable, registry);
 	}
-	
+
 	@Override
-	public void okPressed()
-	{
+	public void okPressed() {
 		super.okPressed();
 		System.out.println("ok was pressed!");
-		
+
 		TemplateTranslator translator = new TemplateTranslator();
 		try {
-			translator.translate(getTemplate()) ;
+			translator.translate(getTemplate());
 		} catch (TemplateException e) {
 			e.printStackTrace();
 		}
-		
+		System.out.println("Template was successfully translated!");
+
+	}
+
+	@Override
+	protected void doSourceChanged(IDocument document) {
+		// do nothing
 	}
 
 }

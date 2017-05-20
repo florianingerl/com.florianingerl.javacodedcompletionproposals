@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -13,6 +14,10 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.text.templates.ContextTypeRegistry;
+import org.eclipse.jface.text.templates.DocumentTemplateContext;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.text.templates.TemplateContext;
 
 public class JavaCodedCompletionProposalComputer
 		implements org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer {
@@ -34,21 +39,16 @@ public class JavaCodedCompletionProposalComputer
 			logger.debug("invocationOffset = " + context.getInvocationOffset());
 			logger.debug("Document = " + document.get());
 
-			// We need to get all the code snippets here that fit and construct
-			// the
-			// JavaCodedCompletionProposal with a JavaCodedCompletionTemplate
-			ITemplatesWithJavaCodeLocator templatesLocator = ServiceLocator.getInjector()
-					.getInstance(ITemplatesWithJavaCodeLocator.class);
-			List<TemplateWithJavaCode> templates;
-
-			templates = templatesLocator.getTemplatesWithJavaCode(context.computeIdentifierPrefix().toString());
+			Template[] templates = JavaCodedTemplatePlugin.getDefault().getTemplateStore().getTemplates();
 
 			Region region = new Region(context.getInvocationOffset() - context.computeIdentifierPrefix().length(),
 					context.getInvocationOffset());
 			List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
-			for (TemplateWithJavaCode template : templates) {
 
-				result.add(new JavaCodedCompletionProposal(template, region, null));
+			TemplateContext tc = new DocumentTemplateContext(null, document, region.getOffset(), region.getLength());
+
+			for (Template template : templates) {
+				result.add(new JavaCodedCompletionProposal(template, tc, region, null));
 			}
 			return result;
 		} catch (BadLocationException e) {

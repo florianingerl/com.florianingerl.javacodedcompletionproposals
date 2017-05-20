@@ -58,7 +58,7 @@ public class TemplateTranslator {
 	private static final File TEMPLATES_STORE_LOCATION = new File("C:/Users/Hermann/Desktop/TemplateStore");
 	private Template fTemplate;
 	private StringBuilder sbJavaSrcFile = new StringBuilder();
-	private File javaCompiler = new File("C:/Program Files/Java/jdk1.8.0_102/bin/javac.exe");
+	private File javaCompiler = new File("C:\\Program Files\\Java\\jdk1.8.0_92\\bin\\javac.exe");
 	private File javaSourceFile;
 	/**
 	 * Regex pattern for identifier. Note: For historic reasons, this pattern
@@ -252,20 +252,14 @@ public class TemplateTranslator {
 							"public static String " + name + matcher.group("arguments") + matcher.group("body"));
 					final List<String> arguments = new LinkedList<String>();
 					matcher.captures("argument").stream().forEach((Capture capture) -> {
-						arguments.add(capture.getValue() );
+						arguments.add(capture.getValue());
 					});
-					if( arguments.contains(name) )
-					{
+					if (arguments.contains(name)) {
 						fail("Arguments to a Java-coded template variable mustn't have the name of the template variable itself");
 					}
-					allParameters.addAll(arguments ); 
-					String[] parameter = new String[arguments.size() + 2];
-					parameter[0] = new File(TEMPLATES_STORE_LOCATION, fTemplate.getName()).getAbsolutePath();
-					parameter[1] = name;
-					for (int k = 0; k < arguments.size(); ++k) {
-						parameter[k + 2] = arguments.get(k);
-					}
-					type = constructTemplateVariableType("javaCoded", parameter);
+					allParameters.addAll(arguments);
+
+					type = constructTemplateVariableType("javaCoded");
 				} else {
 					allVariables.add(name);
 					type = createType(typeName, params);
@@ -283,9 +277,8 @@ public class TemplateTranslator {
 		sbJavaSrcFile.append("}");
 		writeJavaSourceFile();
 		compileClassFile();
-		
-		if( !allVariables.containsAll(allParameters) )
-		{
+
+		if (!allVariables.containsAll(allParameters)) {
 			fail("Not all parameters of Java-coded template variables were the names of other template variables");
 		}
 

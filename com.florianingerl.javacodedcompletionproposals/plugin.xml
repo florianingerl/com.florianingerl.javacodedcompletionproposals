@@ -73,15 +73,7 @@
       point = "org.eclipse.ui.preferencePages">
        <page id="com.florianingerl.javacodedcompletionproposals.javacodedtemplatepreferencepage"
 	    class="com.florianingerl.javacodedcompletionproposals.preferencepages.JavaCodedTemplatePreferencePage"
-            name="Test 1">
-       </page>
-   </extension>
-   
-    <extension
-      point = "org.eclipse.ui.preferencePages">
-       <page id="com.florianingerl.javacodedcompletionproposals.templatelistpreferencepage"
-	    class="com.florianingerl.javacodedcompletionproposals.preferencepages.TemplateListPreferencePage"
-            name="Test 2">
+            name="Java-coded templates">
        </page>
    </extension>
    

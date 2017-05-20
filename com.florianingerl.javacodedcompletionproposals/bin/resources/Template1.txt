@@ -1,0 +1,2 @@
+private ${type} ${field_name};
+public static final String FIELD_${capitalized_field_name: (String field_name) -> { return field_name.toUpperCase(); } } = "${field_name}";
