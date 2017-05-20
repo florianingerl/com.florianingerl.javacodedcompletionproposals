@@ -92,7 +92,8 @@ public class LinkedPositionGroup {
 	private Method updateMethod;
 
 	public void addDependentGroup(LinkedPositionGroup dependentGroup) {
-		dependentGroups.add(dependentGroup);
+		if (!dependentGroups.contains(dependentGroup))
+			dependentGroups.add(dependentGroup);
 	}
 
 	public void setDependencyGroups(Method updateMethod, List<LinkedPositionGroup> dependencyGroups) {

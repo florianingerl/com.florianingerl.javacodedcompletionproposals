@@ -16,12 +16,8 @@ public class JavaCodedTemplateVariableResolver extends TemplateVariableResolver 
 	private Class<?> clazz;
 
 	public JavaCodedTemplateVariableResolver(Class<?> clazz) {
+		super("javaCoded", "A template variable resolver for a java-coded template variable");
 		this.clazz = clazz;
-	}
-
-	@Override
-	public String getType() {
-		return "javaCoded";
 	}
 
 	@Override
