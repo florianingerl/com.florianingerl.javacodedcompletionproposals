@@ -99,6 +99,9 @@ public class LinkedPositionGroup {
 	public void setDependencyGroups(Method updateMethod, List<LinkedPositionGroup> dependencyGroups) {
 		this.updateMethod = updateMethod;
 		this.dependencyGroups = dependencyGroups;
+		for (LinkedPosition p : fPositions) {
+			p.setSequenceNumber(LinkedPositionGroup.NO_STOP);
+		}
 	}
 
 	/**
