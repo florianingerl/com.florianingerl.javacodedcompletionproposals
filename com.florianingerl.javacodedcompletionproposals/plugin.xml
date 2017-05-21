@@ -63,7 +63,7 @@
    id="javacodedcompletionproposalcomputer"
    name="Java-coded completion proposal computer">
    <javaCompletionProposalComputer
-      class="com.florianingerl.javacodedcompletionproposals.JavaCodedCompletionProposalComputer"
+      class="com.florianingerl.javacodedcompletionproposals.JavaCodedTemplateCompletionProposalComputer"
       activate="true">
       
    </javaCompletionProposalComputer>

@@ -259,7 +259,7 @@ public class TemplateTranslator {
 					}
 					allParameters.addAll(arguments);
 
-					type = constructTemplateVariableType("javaCoded");
+					type = constructTemplateVariableType("javaCoded", arguments.toArray(new String[arguments.size()]));
 				} else {
 					allVariables.add(name);
 					type = createType(typeName, params);

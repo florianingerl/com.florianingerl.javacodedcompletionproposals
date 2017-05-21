@@ -6,16 +6,18 @@ import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.templates.TemplateContextType;
+import org.eclipse.jface.text.templates.TemplateVariableResolver;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
-	
-	private static Logger logger = Logger.getLogger(JavaCodedTemplatePlugin.class );
+
+	private static Logger logger = Logger.getLogger(JavaCodedTemplatePlugin.class);
 
 	private static final String TEMPLATES_KEY = "com.github.florianingerl.javacodedtemplatesplugin.custom_templates";
-	
+
 	private static JavaCodedTemplatePlugin instance = null;
 
 	private IPreferenceStore fPreferenceStore;
@@ -41,7 +43,11 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 		if (fTemplateStore == null) {
 
 			final IPreferenceStore store = getPreferenceStore();
-			fTemplateStore = new TemplateStore(null /*JavaPlugin.getDefault().getCodeTemplateContextRegistry()*/, store, TEMPLATES_KEY );
+			fTemplateStore = new TemplateStore(
+					null /*
+							 * JavaPlugin.getDefault().
+							 * getCodeTemplateContextRegistry()
+							 */, store, TEMPLATES_KEY);
 
 			try {
 				fTemplateStore.load();
@@ -53,6 +59,12 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 		}
 
 		return fTemplateStore;
+	}
+
+	public TemplateContextType getTemplateContextType() {
+		TemplateContextType tct = new TemplateContextType();
+		tct.addResolver(new TemplateVariableResolver());
+		return tct;
 	}
 
 }

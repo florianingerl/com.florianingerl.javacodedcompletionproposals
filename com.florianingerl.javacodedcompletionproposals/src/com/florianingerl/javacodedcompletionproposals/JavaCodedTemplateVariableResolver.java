@@ -3,6 +3,7 @@ package com.florianingerl.javacodedcompletionproposals;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,12 +26,10 @@ public class JavaCodedTemplateVariableResolver extends TemplateVariableResolver 
 		Assert.isTrue(tv.getVariableType().getName().equals("javaCoded"));
 
 		try {
-			Method m = clazz.getMethod(tv.getName());
-			List<String> argumentNames = Stream.of(m.getTypeParameters()).map((TypeVariable<Method> tvm) -> {
-				return tvm.getName();
-			}).collect(Collectors.toList());
-			int i = 0;
+			Method m = ReflectionUtils.findAnyMethod(clazz, tv.getName());
+			List<String> argumentNames = tv.getVariableType().getParams();
 			String[] arguments = new String[argumentNames.size()];
+			int i = 0;
 			for (String argument : argumentNames) {
 				arguments[i++] = tc.getVariable(argument);
 				if (arguments[i - 1] == null)

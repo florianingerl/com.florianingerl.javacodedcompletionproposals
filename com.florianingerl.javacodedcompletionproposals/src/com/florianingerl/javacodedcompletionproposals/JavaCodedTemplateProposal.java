@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.Assert;
@@ -53,7 +54,7 @@ import org.eclipse.jface.text.templates.TemplateVariableResolver;
  *
  * @since 3.0
  */
-public class JavaCodedCompletionProposal implements ICompletionProposal, ICompletionProposalExtension,
+public class JavaCodedTemplateProposal implements ICompletionProposal, ICompletionProposalExtension,
 		ICompletionProposalExtension2, ICompletionProposalExtension3 {
 
 	private final Template fTemplate;
@@ -79,7 +80,7 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	 * @param image
 	 *            the icon of the proposal.
 	 */
-	public JavaCodedCompletionProposal(Template template, TemplateContext context, IRegion region, Image image) {
+	public JavaCodedTemplateProposal(Template template, TemplateContext context, IRegion region, Image image) {
 		this(template, context, region, image, 0);
 	}
 
@@ -97,7 +98,7 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	 * @param relevance
 	 *            the relevance of the proposal
 	 */
-	public JavaCodedCompletionProposal(Template template, TemplateContext context, IRegion region, Image image,
+	public JavaCodedTemplateProposal(Template template, TemplateContext context, IRegion region, Image image,
 			int relevance) {
 		Assert.isNotNull(template);
 		Assert.isNotNull(context);
@@ -175,15 +176,15 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
 
 		IDocument document = viewer.getDocument();
-		Class<?> c = null;
+		Class<?> clazz = null;
 		try {
 
 			URL url = TemplateTranslator.TEMPLATES_STORE_LOCATION.toURI().toURL();
 			URL[] urls = new URL[] { url };
 			URLClassLoader classLoader = new URLClassLoader(urls);
-			c = classLoader.loadClass(fTemplate.getName());
+			clazz = classLoader.loadClass(fTemplate.getName());
 
-			TemplateVariableResolver tvr = new JavaCodedTemplateVariableResolver(c);
+			TemplateVariableResolver tvr = new JavaCodedTemplateVariableResolver(clazz);
 			fContext.getContextType().addResolver(tvr);
 
 			fContext.setReadOnly(false);
@@ -218,6 +219,8 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 			for (int i = 0; i != variables.length; i++) {
 				TemplateVariable variable = variables[i];
 
+				// TODO: Maybe dependent groups want to depend on resolved
+				// variables
 				if (variable.isUnambiguous())
 					continue;
 
@@ -260,11 +263,11 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 					continue;
 				}
 				LinkedPositionGroup group = map.get(variable.getName());
-				Method m = c.getMethod(variable.getName());
+
+				Method m = ReflectionUtils.findAnyMethod(clazz, variable.getName());
+
 				List<LinkedPositionGroup> dependencyGroups = new LinkedList<LinkedPositionGroup>();
-				Stream.of(m.getTypeParameters()).map((TypeVariable<Method> tvm) -> {
-					return tvm.getName();
-				}).forEach((String s) -> {
+				variable.getVariableType().getParams().stream().forEach((String s) -> {
 					LinkedPositionGroup g = map.get(s);
 					g.addDependentGroup(group);
 					dependencyGroups.add(g);
@@ -289,8 +292,7 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 			openErrorDialog(viewer.getTextWidget().getShell(), e);
 			ensurePositionCategoryRemoved(document);
 			fSelectedRegion = fRegion;
-		} catch (BadPositionCategoryException | MalformedURLException | ClassNotFoundException | NoSuchMethodException
-				| SecurityException e) {
+		} catch (BadPositionCategoryException | MalformedURLException | ClassNotFoundException | SecurityException e) {
 			openErrorDialog(viewer.getTextWidget().getShell(), e);
 			fSelectedRegion = fRegion;
 		}
@@ -446,6 +448,10 @@ public class JavaCodedCompletionProposal implements ICompletionProposal, IComple
 	 */
 	public int getRelevance() {
 		return fRelevance;
+	}
+
+	public void setRelevance(int relevance) {
+		fRelevance = relevance;
 	}
 
 	@Override

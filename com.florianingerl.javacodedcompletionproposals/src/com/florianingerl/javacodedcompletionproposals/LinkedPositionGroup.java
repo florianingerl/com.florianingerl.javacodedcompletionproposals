@@ -374,7 +374,7 @@ public class LinkedPositionGroup {
 		} catch (BadLocationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "";
+			return e.getLocalizedMessage();
 		}
 	}
 

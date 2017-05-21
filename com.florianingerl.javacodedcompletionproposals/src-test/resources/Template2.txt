@@ -1,0 +1,9 @@
+private ${type} ${field_name};
+private static final String FIELD_${capitalized_field_name:(String field_name) -> { return field_name.toUpperCase(); } } = "${field_name}";
+public ${type} get${first_letter_capitalized_field_name: (String field_name)-> { return Character.toUpperCase( field_name.charAt(0) ) + field_name.substring(1); } }(){
+return ${field_name};
+}
+
+public void set${first_letter_capitalized_field_name}(${type} ${field_name}){
+	changeSupport.firePropertyChange(FIELD_${capitalized_field_name},this.${field_name}, this.${field_name} = ${field_name} );
+}
