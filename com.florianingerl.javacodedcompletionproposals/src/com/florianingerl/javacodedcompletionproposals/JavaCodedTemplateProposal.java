@@ -178,7 +178,7 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 	private Class<?> getTemplateClass() {
 		if (templateClazz == null) {
 			try {
-				URL url = JavaCodedTemplateTranslator.TEMPLATES_STORE_LOCATION.toURI().toURL();
+				URL url = JavaCodedTemplatePlugin.getDefault().getTemplateStoreDir().toURI().toURL();
 				URL[] urls = new URL[] { url };
 				URLClassLoader classLoader = new URLClassLoader(urls);
 				templateClazz = classLoader.loadClass(fTemplate.getName());
@@ -494,7 +494,7 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 					}
 
 				};
-				templateBuffer = translator.translate(fTemplate);
+				templateBuffer = translator.translate(fTemplate, false);
 				fContext.getContextType().resolve(templateBuffer, fContext);
 
 				rewriteImports();
@@ -512,7 +512,7 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 
 			} else if (fContext instanceof JavaDocContext) {
 				translator = new JavaCodedTemplateTranslator();
-				templateBuffer = translator.translate(fTemplate);
+				templateBuffer = translator.translate(fTemplate, false);
 				fContext.getContextType().resolve(templateBuffer, fContext);
 
 				IPreferenceStore prefs = JavaPlugin.getDefault().getPreferenceStore();
@@ -525,7 +525,7 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 				formatter.format(templateBuffer, fContext);
 			} else {
 				translator = new JavaCodedTemplateTranslator();
-				templateBuffer = translator.translate(fTemplate);
+				templateBuffer = translator.translate(fTemplate, false);
 				fContext.getContextType().resolve(templateBuffer, fContext);
 			}
 

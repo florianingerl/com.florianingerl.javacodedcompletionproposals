@@ -1,7 +1,9 @@
 package com.florianingerl.javacodedcompletionproposals;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
@@ -27,7 +29,7 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 
 	private static JavaCodedTemplatePlugin instance = null;
 
-	private static Image image = null;
+	private Image image = null;
 
 	private IPreferenceStore fPreferenceStore;
 	private TemplateStore fTemplateStore;
@@ -86,6 +88,24 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 		}
 		return image;
 
+	}
+
+	private File templateStoreDir;
+
+	public File getTemplateStoreDir() {
+		if (templateStoreDir == null) {
+			File parent = null;
+			try {
+				parent = new File(Platform.getInstallLocation().getURL().toURI());
+			} catch (URISyntaxException e) {
+				parent = new File(System.getProperty("user.home"));
+			}
+			templateStoreDir = new File(parent, "javacodedtemplatestore");
+			if (!templateStoreDir.exists()) {
+				templateStoreDir.mkdir();
+			}
+		}
+		return templateStoreDir;
 	}
 
 }

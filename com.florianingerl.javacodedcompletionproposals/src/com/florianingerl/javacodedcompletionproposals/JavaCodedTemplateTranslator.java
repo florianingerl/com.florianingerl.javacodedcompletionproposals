@@ -55,9 +55,9 @@ import com.florianingerl.util.regex.*;
  */
 public class JavaCodedTemplateTranslator {
 
-	static final File TEMPLATES_STORE_LOCATION = new File("C:/Users/Hermann/Desktop/TemplateStore");
 	private Template fTemplate;
 	private StringBuilder sbJavaSrcFile = new StringBuilder();
+	private boolean fCompile;
 	private File javaCompiler = new File("C:\\Program Files\\Java\\jdk1.8.0_92\\bin\\javac.exe");
 	private File javaSourceFile;
 	/**
@@ -185,10 +185,16 @@ public class JavaCodedTemplateTranslator {
 	 * @throws TemplateException
 	 *             if translation failed
 	 */
-	public TemplateBuffer translate(Template template) throws TemplateException {
+	public TemplateBuffer translate(Template template, boolean compile) throws TemplateException {
 		fTemplate = template;
+		fCompile = compile;
+		if (!fCompile) {
+			File dir = JavaCodedTemplatePlugin.getDefault().getTemplateStoreDir();
+			fCompile = !(new File(dir, fTemplate.getName() + ".class").exists());
+		}
 
-		sbJavaSrcFile.append("public class " + template.getName() + "{ ");
+		if (fCompile)
+			sbJavaSrcFile.append("public class " + template.getName() + "{ ");
 		return parse(template.getPattern());
 	}
 
@@ -248,8 +254,10 @@ public class JavaCodedTemplateTranslator {
 
 				TemplateVariableType type = null;
 				if (body != null) {
-					sbJavaSrcFile.append(
-							"public static String " + name + matcher.group("arguments") + matcher.group("body"));
+					if (fCompile) {
+						sbJavaSrcFile.append(
+								"public static String " + name + matcher.group("arguments") + matcher.group("body"));
+					}
 					final List<String> arguments = new LinkedList<String>();
 					matcher.captures("argument").stream().forEach((Capture capture) -> {
 						arguments.add(capture.getValue());
@@ -274,9 +282,11 @@ public class JavaCodedTemplateTranslator {
 		buffer.append(string.substring(complete));
 
 		TemplateVariable[] vars = createVariables(variables);
-		sbJavaSrcFile.append("}");
-		writeJavaSourceFile();
-		compileClassFile();
+		if (fCompile) {
+			sbJavaSrcFile.append("}");
+			writeJavaSourceFile();
+			compileClassFile();
+		}
 
 		if (!allVariables.containsAll(allParameters)) {
 			fail("Not all parameters of Java-coded template variables were the names of other template variables");
@@ -317,7 +327,8 @@ public class JavaCodedTemplateTranslator {
 
 	private void writeJavaSourceFile() {
 		try {
-			javaSourceFile = new File(TEMPLATES_STORE_LOCATION, fTemplate.getName() + ".java");
+			javaSourceFile = new File(JavaCodedTemplatePlugin.getDefault().getTemplateStoreDir(),
+					fTemplate.getName() + ".java");
 			PrintWriter writer = new PrintWriter(javaSourceFile);
 			writer.println(sbJavaSrcFile);
 			writer.close();
