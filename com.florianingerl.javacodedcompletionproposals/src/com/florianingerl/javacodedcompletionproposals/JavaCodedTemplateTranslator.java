@@ -1,15 +1,12 @@
 package com.florianingerl.javacodedcompletionproposals;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -18,13 +15,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jdt.core.compiler.batch.BatchCompiler;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateBuffer;
 import org.eclipse.jface.text.templates.TemplateException;
 import org.eclipse.jface.text.templates.TemplateVariable;
 import org.eclipse.jface.text.templates.TemplateVariableType;
 
-import com.florianingerl.util.regex.*;
+import com.florianingerl.util.regex.Capture;
+import com.florianingerl.util.regex.Matcher;
+import com.florianingerl.util.regex.Pattern;
 
 /**
  * The template translator translates a string into a template buffer. Regions
@@ -58,7 +58,6 @@ public class JavaCodedTemplateTranslator {
 	private Template fTemplate;
 	private StringBuilder sbJavaSrcFile = new StringBuilder();
 	private boolean fCompile;
-	private File javaCompiler = new File("C:\\Program Files\\Java\\jdk1.8.0_92\\bin\\javac.exe");
 	private File javaSourceFile;
 	/**
 	 * Regex pattern for identifier. Note: For historic reasons, this pattern
@@ -188,6 +187,7 @@ public class JavaCodedTemplateTranslator {
 	public TemplateBuffer translate(Template template, boolean compile) throws TemplateException {
 		fTemplate = template;
 		fCompile = compile;
+
 		if (!fCompile) {
 			File dir = JavaCodedTemplatePlugin.getDefault().getTemplateStoreDir();
 			fCompile = !(new File(dir, fTemplate.getName() + ".class").exists());
@@ -297,15 +297,17 @@ public class JavaCodedTemplateTranslator {
 
 	private void compileClassFile() throws TemplateException {
 		try {
-			ProcessBuilder processBuilder = new ProcessBuilder(javaCompiler.getAbsolutePath(),
-					javaSourceFile.getAbsolutePath());
-			Process p = processBuilder.start();
-			String processOutput = getProcessOutput(p);
-			System.out.println(processOutput);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			PrintWriter errWriter = new PrintWriter(baos);
 
-			int result = p.waitFor();
-			if (result != 0) {
-				fail(processOutput);
+			// BatchCompiler.compile("-help", new PrintWriter(System.out), new
+			// PrintWriter(System.err), null);
+			boolean success = BatchCompiler.compile(
+					javaSourceFile.getAbsolutePath() + " -d " + javaSourceFile.getParentFile().getAbsolutePath(),
+					new PrintWriter(new ByteArrayOutputStream()), errWriter, null);
+
+			if (!success) {
+				fail(baos.toString());
 
 			}
 		} catch (Exception e) {
@@ -313,16 +315,6 @@ public class JavaCodedTemplateTranslator {
 			fail(e.getMessage());
 			// assert classFile != null && classFile.exists();
 		}
-	}
-
-	private String getProcessOutput(Process process) throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-		StringBuilder sb = new StringBuilder();
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			sb.append(line + "\n");
-		}
-		return sb.toString();
 	}
 
 	private void writeJavaSourceFile() {
