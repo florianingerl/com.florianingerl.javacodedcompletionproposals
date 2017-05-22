@@ -8,13 +8,13 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package com.florianingerl.javacodedcompletionproposals.preferencepages;
+package com.florianingerl.javacodedtemplates.preferencepages;
 
 import org.eclipse.jdt.internal.ui.preferences.JavaTemplatePreferencePage;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.window.Window;
 
-import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplatePlugin;
+import com.florianingerl.javacodedtemplates.JavaCodedTemplatePlugin;
 
 public class JavaCodedTemplatePreferencePage extends JavaTemplatePreferencePage {
 
@@ -30,7 +30,7 @@ public class JavaCodedTemplatePreferencePage extends JavaTemplatePreferencePage 
 	 */
 	@Override
 	protected Template editTemplate(Template template, boolean edit, boolean isNameModifiable) {
-		com.florianingerl.javacodedcompletionproposals.preferencepages.EditJavaCodedTemplateDialog dialog = new com.florianingerl.javacodedcompletionproposals.preferencepages.EditJavaCodedTemplateDialog(
+		com.florianingerl.javacodedtemplates.preferencepages.EditJavaCodedTemplateDialog dialog = new com.florianingerl.javacodedtemplates.preferencepages.EditJavaCodedTemplateDialog(
 				getShell(), template, edit, isNameModifiable, getContextTypeRegistry());
 		if (dialog.open() == Window.OK) {
 			return dialog.getTemplate();

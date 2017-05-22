@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

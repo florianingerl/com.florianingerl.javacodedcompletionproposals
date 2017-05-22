@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -23,13 +22,9 @@ import org.osgi.framework.Bundle;
 
 public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 
-	private static Logger logger = Logger.getLogger(JavaCodedTemplatePlugin.class);
-
 	private static final String TEMPLATES_KEY = "com.github.florianingerl.javacodedtemplatesplugin.custom_templates";
 
 	private static JavaCodedTemplatePlugin instance = null;
-
-	private Image image = null;
 
 	private IPreferenceStore fPreferenceStore;
 	private TemplateStore fTemplateStore;
@@ -63,7 +58,7 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 			try {
 				fTemplateStore.load();
 			} catch (IOException e) {
-				logger.debug(e);
+				e.printStackTrace();
 			}
 			fTemplateStore.startListeningForPreferenceChanges();
 
@@ -78,17 +73,15 @@ public class JavaCodedTemplatePlugin extends AbstractUIPlugin {
 		return tct;
 	}
 
-	public Image getImage() {
-
-		if (image == null) {
-			Path path = new Path("icons/igel.gif");
-			URL url = Platform.find(getBundle(), path);
-
-			image = ImageDescriptor.createFromURL(url).createImage();
-		}
-		return image;
-
-	}
+	/*
+	 * private Image image = null; public Image getImage() {
+	 * 
+	 * if (image == null) { Path path = new Path("icons/igel.gif"); URL url =
+	 * Platform.find(getBundle(), path);
+	 * 
+	 * image = ImageDescriptor.createFromURL(url).createImage(); } return image;
+	 * }
+	 */
 
 	private File templateStoreDir;
 

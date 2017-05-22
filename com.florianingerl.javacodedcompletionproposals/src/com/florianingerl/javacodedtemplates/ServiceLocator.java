@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import com.google.inject.Injector;
 

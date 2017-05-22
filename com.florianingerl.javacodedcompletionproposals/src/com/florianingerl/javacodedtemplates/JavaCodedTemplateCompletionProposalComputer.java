@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.CompletionContext;

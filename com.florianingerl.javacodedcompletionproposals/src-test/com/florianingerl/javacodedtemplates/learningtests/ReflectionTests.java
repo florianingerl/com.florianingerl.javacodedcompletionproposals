@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals.learningtests;
+package com.florianingerl.javacodedtemplates.learningtests;
 
 import static org.junit.Assert.*;
 

@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 /**
  * Protocol used by {@link LinkedModeModel}s to communicate state changes, such

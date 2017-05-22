@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

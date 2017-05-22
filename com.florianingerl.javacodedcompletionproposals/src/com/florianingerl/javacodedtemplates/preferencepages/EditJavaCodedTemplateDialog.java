@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals.preferencepages;
+package com.florianingerl.javacodedtemplates.preferencepages;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,8 +87,8 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.IUpdate;
 
-import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplatePlugin;
-import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplateTranslator;
+import com.florianingerl.javacodedtemplates.JavaCodedTemplatePlugin;
+import com.florianingerl.javacodedtemplates.JavaCodedTemplateTranslator;
 import com.ibm.icu.text.Collator;
 
 public class EditJavaCodedTemplateDialog extends StatusDialog {

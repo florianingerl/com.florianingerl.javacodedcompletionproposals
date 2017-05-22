@@ -1,9 +1,7 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import java.net.URL;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -20,7 +18,6 @@ public class Activator extends AbstractUIPlugin {
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.florianingerl.javacodedcompletionproposals"; //$NON-NLS-1$
 
-	private static Logger logger = Logger.getLogger(Activator.class);
 	// The shared instance
 	private static Activator plugin;
 
@@ -39,12 +36,6 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-
-		URL confURL = getBundle().getEntry("log4j.properties");
-		PropertyConfigurator.configure(FileLocator.toFileURL(confURL).getFile());
-
-		System.out.println("System.out appears in the console!");
-		logger.debug("Log4j was initialized correctly!");
 
 		Injector injector = Guice.createInjector(new EclipsePluginDependencyResolverModule());
 		ServiceLocator.setInjector(injector);

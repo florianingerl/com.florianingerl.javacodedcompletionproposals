@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;

@@ -3,10 +3,10 @@
 <plugin>
    
    <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-   id="com.florianingerl.javacodedcompletionproposals.javacodedtemplatecompletionproposalcomputer"
+   id="com.florianingerl.javacodedtemplates.javacodedtemplatecompletionproposalcomputer"
    name="javacodedtemplatecompletionproposalcomputer">
    <javaCompletionProposalComputer
-      class="com.florianingerl.javacodedcompletionproposals.JavaCodedTemplateCompletionProposalComputer"
+      class="com.florianingerl.javacodedtemplates.JavaCodedTemplateCompletionProposalComputer"
       activate="true">
       
    </javaCompletionProposalComputer>
@@ -14,8 +14,8 @@
  
   <extension
       point = "org.eclipse.ui.preferencePages">
-       <page id="com.florianingerl.javacodedcompletionproposals.javacodedtemplatepreferencepage"
-	    class="com.florianingerl.javacodedcompletionproposals.preferencepages.JavaCodedTemplatePreferencePage"
+       <page id="com.florianingerl.javacodedtemplates.javacodedtemplatepreferencepage"
+	    class="com.florianingerl.javacodedtemplates.preferencepages.JavaCodedTemplatePreferencePage"
             name="Java-coded templates"
             category="org.eclipse.jdt.ui.preferences.JavaEditorPreferencePage"
             >

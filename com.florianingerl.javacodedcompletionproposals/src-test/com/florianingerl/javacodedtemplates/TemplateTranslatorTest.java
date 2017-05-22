@@ -1,4 +1,4 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import static org.junit.Assert.*;
 
@@ -11,6 +11,7 @@ import org.eclipse.jface.text.templates.TemplateException;
 import org.eclipse.jface.text.templates.TemplateVariableType;
 import org.junit.Test;
 
+import com.florianingerl.javacodedtemplates.JavaCodedTemplateTranslator;
 import com.florianingerl.util.regex.Capture;
 import com.florianingerl.util.regex.Matcher;
 import com.florianingerl.util.regex.Pattern;

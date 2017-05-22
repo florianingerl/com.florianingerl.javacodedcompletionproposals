@@ -1,10 +1,12 @@
-package com.florianingerl.javacodedcompletionproposals;
+package com.florianingerl.javacodedtemplates;
 
 import static org.junit.Assert.*;
 
 import java.lang.reflect.Method;
 
 import org.junit.Test;
+
+import com.florianingerl.javacodedtemplates.ReflectionUtils;
 
 public class ReflectionUtilsTest {
 
