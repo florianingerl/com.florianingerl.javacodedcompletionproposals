@@ -88,7 +88,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.IUpdate;
 
 import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplatePlugin;
-import com.florianingerl.javacodedcompletionproposals.TemplateTranslator;
+import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplateTranslator;
 import com.ibm.icu.text.Collator;
 
 public class EditJavaCodedTemplateDialog extends StatusDialog {
@@ -604,7 +604,7 @@ public class EditJavaCodedTemplateDialog extends StatusDialog {
 		Template template = new Template(name, fDescriptionText.getText(), getContextId(), getPattern(),
 				isAutoInsertable);
 
-		TemplateTranslator translator = new TemplateTranslator();
+		JavaCodedTemplateTranslator translator = new JavaCodedTemplateTranslator();
 		try {
 			translator.translate(template);
 		} catch (TemplateException e) {

@@ -3,7 +3,10 @@ package com.florianingerl.javacodedcompletionproposals;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.text.edits.MalformedTreeException;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.net.MalformedURLException;
@@ -17,9 +20,18 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.internal.corext.template.java.CompilationUnitContext;
+import org.eclipse.jdt.internal.corext.template.java.JavaContext;
+import org.eclipse.jdt.internal.corext.template.java.JavaDocContext;
+import org.eclipse.jdt.internal.corext.template.java.JavaFormatter;
+import org.eclipse.jdt.internal.corext.template.java.JavaVariable;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.text.template.contentassist.MultiVariable;
 import org.eclipse.jdt.internal.ui.text.template.contentassist.PositionBasedCompletionProposal;
+import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -29,6 +41,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension2;
@@ -43,8 +56,10 @@ import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateBuffer;
 import org.eclipse.jface.text.templates.TemplateContext;
 import org.eclipse.jface.text.templates.TemplateException;
+import org.eclipse.jface.text.templates.TemplateTranslator;
 import org.eclipse.jface.text.templates.TemplateVariable;
 import org.eclipse.jface.text.templates.TemplateVariableResolver;
+import org.eclipse.jface.text.templates.TemplateVariableType;
 
 /**
  * A template completion proposal.
@@ -158,6 +173,22 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 		// not called anymore
 	}
 
+	private Class<?> templateClazz = null;
+
+	private Class<?> getTemplateClass() {
+		if (templateClazz == null) {
+			try {
+				URL url = JavaCodedTemplateTranslator.TEMPLATES_STORE_LOCATION.toURI().toURL();
+				URL[] urls = new URL[] { url };
+				URLClassLoader classLoader = new URLClassLoader(urls);
+				templateClazz = classLoader.loadClass(fTemplate.getName());
+			} catch (MalformedURLException | ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		return templateClazz;
+	}
+
 	/**
 	 * Inserts the template offered by this proposal into the viewer's document
 	 * and sets up a <code>LinkedModeUI</code> on the viewer to edit any of the
@@ -176,32 +207,19 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
 
 		IDocument document = viewer.getDocument();
-		Class<?> clazz = null;
+
 		try {
-
-			URL url = TemplateTranslator.TEMPLATES_STORE_LOCATION.toURI().toURL();
-			URL[] urls = new URL[] { url };
-			URLClassLoader classLoader = new URLClassLoader(urls);
-			clazz = classLoader.loadClass(fTemplate.getName());
-
-			TemplateVariableResolver tvr = new JavaCodedTemplateVariableResolver(clazz);
-			fContext.getContextType().addResolver(tvr);
-
 			fContext.setReadOnly(false);
 			int start;
 			TemplateBuffer templateBuffer;
 			{
 				int oldReplaceOffset = getReplaceOffset();
 				try {
-					// this may already modify the document (e.g. add imports)
-					TemplateTranslator translator = new TemplateTranslator();
-					templateBuffer = translator.translate(fTemplate);
-					fContext.getContextType().resolve(templateBuffer, fContext);
-				} catch (TemplateException e1) {
+					templateBuffer = getTemplateBuffer();
+				} catch (Exception e) {
 					fSelectedRegion = fRegion;
 					return;
 				}
-
 				start = getReplaceOffset();
 				int shift = start - oldReplaceOffset;
 				int end = Math.max(getReplaceEndOffset(), offset + shift);
@@ -264,7 +282,7 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 				}
 				LinkedPositionGroup group = map.get(variable.getName());
 
-				Method m = ReflectionUtils.findAnyMethod(clazz, variable.getName());
+				Method m = ReflectionUtils.findAnyMethod(getTemplateClass(), variable.getName());
 
 				List<LinkedPositionGroup> dependencyGroups = new LinkedList<LinkedPositionGroup>();
 				variable.getVariableType().getParams().stream().forEach((String s) -> {
@@ -292,7 +310,7 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 			openErrorDialog(viewer.getTextWidget().getShell(), e);
 			ensurePositionCategoryRemoved(document);
 			fSelectedRegion = fRegion;
-		} catch (BadPositionCategoryException | MalformedURLException | ClassNotFoundException | SecurityException e) {
+		} catch (BadPositionCategoryException | SecurityException e) {
 			openErrorDialog(viewer.getTextWidget().getShell(), e);
 			fSelectedRegion = fRegion;
 		}
@@ -392,20 +410,140 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 		return new Point(fSelectedRegion.getOffset(), fSelectedRegion.getLength());
 	}
 
+	private static Method mClear;
+
+	private void clear() throws NoSuchMethodException, SecurityException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException {
+		if (mClear == null) {
+			mClear = JavaContext.class.getDeclaredMethod("clear");
+			mClear.setAccessible(true);
+		}
+		mClear.invoke(fContext);
+	}
+
+	private static Method mRewriteImports;
+
+	private void rewriteImports() throws NoSuchMethodException, SecurityException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException {
+		if (mRewriteImports == null) {
+			mRewriteImports = JavaContext.class.getDeclaredMethod("rewriteImports");
+			mRewriteImports.setAccessible(true);
+		}
+		mRewriteImports.invoke(fContext);
+	}
+
+	private static Method mGetJavaProject;
+
+	private IJavaProject getJavaProject() throws IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException {
+		if (mGetJavaProject == null) {
+			mGetJavaProject = CompilationUnitContext.class.getDeclaredMethod("getJavaProject");
+			mGetJavaProject.setAccessible(true);
+		}
+		return (IJavaProject) mGetJavaProject.invoke(fContext);
+	}
+
+	private static Method mGetIndentation;
+
+	private int getIndentation() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException {
+		if (mGetIndentation == null) {
+			mGetIndentation = JavaContext.class.getDeclaredMethod("getIndentation");
+			mGetIndentation.setAccessible(true);
+		}
+		return (int) mGetIndentation.invoke(fContext);
+	}
+
+	private static Method mGetIndentation2;
+
+	private int getIndentation2() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException {
+		if (mGetIndentation2 == null) {
+			mGetIndentation2 = JavaDocContext.class.getDeclaredMethod("getIndentation");
+			mGetIndentation2.setAccessible(true);
+		}
+		return (int) mGetIndentation2.invoke(fContext);
+	}
+
+	private TemplateBuffer getTemplateBuffer()
+			throws TemplateException, BadLocationException, NoSuchFieldException, SecurityException,
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		TemplateVariableResolver tvr = new JavaCodedTemplateVariableResolver(getTemplateClass());
+		fContext.getContextType().addResolver(tvr);
+		TemplateBuffer templateBuffer;
+		try {
+			JavaCodedTemplateTranslator translator = null;
+			if (fContext instanceof JavaContext) {
+				clear();
+				if (!fContext.canEvaluate(fTemplate))
+					throw new TemplateException("Cannot evaluate this template in this context!");
+				Field field = JavaContext.class.getDeclaredField("fVariables");
+				field.setAccessible(true);
+
+				translator = new JavaCodedTemplateTranslator() {
+					@Override
+					protected TemplateVariable createVariable(TemplateVariableType type, String name, int[] offsets) {
+						try {
+							MultiVariable variable = new JavaVariable(type, name, offsets);
+							((Map<String, MultiVariable>) field.get(fContext)).put(name, variable);
+							// fVariables.put(name, variable);
+							return variable;
+						} catch (IllegalArgumentException | IllegalAccessException nsme) {
+							return super.createVariable(type, name, offsets);
+						}
+					}
+
+				};
+				templateBuffer = translator.translate(fTemplate);
+				fContext.getContextType().resolve(templateBuffer, fContext);
+
+				rewriteImports();
+
+				IPreferenceStore prefs = JavaPlugin.getDefault().getPreferenceStore();
+				boolean useCodeFormatter = prefs.getBoolean(PreferenceConstants.TEMPLATES_USE_CODEFORMATTER);
+
+				IJavaProject project = getJavaProject();
+				JavaFormatter formatter = new JavaFormatter(
+						TextUtilities.getDefaultLineDelimiter(((JavaContext) fContext).getDocument()), getIndentation(),
+						useCodeFormatter, project);
+				formatter.format(templateBuffer, fContext);
+
+				clear();
+
+			} else if (fContext instanceof JavaDocContext) {
+				translator = new JavaCodedTemplateTranslator();
+				templateBuffer = translator.translate(fTemplate);
+				fContext.getContextType().resolve(templateBuffer, fContext);
+
+				IPreferenceStore prefs = JavaPlugin.getDefault().getPreferenceStore();
+				boolean useCodeFormatter = prefs.getBoolean(PreferenceConstants.TEMPLATES_USE_CODEFORMATTER);
+
+				IJavaProject project = getJavaProject();
+				JavaFormatter formatter = new JavaFormatter(
+						TextUtilities.getDefaultLineDelimiter(((JavaDocContext) fContext).getDocument()),
+						getIndentation2(), useCodeFormatter, project);
+				formatter.format(templateBuffer, fContext);
+			} else {
+				translator = new JavaCodedTemplateTranslator();
+				templateBuffer = translator.translate(fTemplate);
+				fContext.getContextType().resolve(templateBuffer, fContext);
+			}
+
+			return templateBuffer;
+
+		} finally {
+			fContext.getContextType().removeResolver(tvr);
+		}
+	}
+
 	@Override
 	public String getAdditionalProposalInfo() {
 		try {
 			fContext.setReadOnly(true);
-			TemplateBuffer templateBuffer;
-			try {
-				templateBuffer = fContext.evaluate(fTemplate);
-			} catch (TemplateException e) {
-				return null;
-			}
-
-			return templateBuffer.getString();
-
-		} catch (BadLocationException e) {
+			return getTemplateBuffer().getString();
+		} catch (BadLocationException | NoSuchFieldException | SecurityException | TemplateException
+				| NoSuchMethodException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
 			return null;
 		}
 	}

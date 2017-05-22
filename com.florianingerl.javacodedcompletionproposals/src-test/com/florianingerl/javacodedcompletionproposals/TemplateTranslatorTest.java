@@ -17,7 +17,7 @@ import com.florianingerl.util.regex.Pattern;
 
 public class TemplateTranslatorTest {
 
-	private static final Pattern PATTERN_LAMBDA = Pattern.compile(TemplateTranslator.PATTERN_LAMBDA);
+	private static final Pattern PATTERN_LAMBDA = Pattern.compile(JavaCodedTemplateTranslator.PATTERN_LAMBDA);
 	
 	private static void check(String lambda, String argumentsInBrackets, String[] arguments, String functionBody)
 	{
@@ -65,7 +65,7 @@ public class TemplateTranslatorTest {
 			assertFalse(true);
 		}
 		Template template = new Template("name", "description", "SWT statements", pattern, false) ;
-		TemplateTranslator translator = new TemplateTranslator();
+		JavaCodedTemplateTranslator translator = new JavaCodedTemplateTranslator();
 		try {
 			TemplateBuffer buffer = translator.translate(template);
 		} catch (TemplateException e) {

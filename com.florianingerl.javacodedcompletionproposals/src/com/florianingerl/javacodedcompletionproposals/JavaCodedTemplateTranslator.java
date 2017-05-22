@@ -53,7 +53,7 @@ import com.florianingerl.util.regex.*;
  *
  * @since 3.0
  */
-public class TemplateTranslator {
+public class JavaCodedTemplateTranslator {
 
 	static final File TEMPLATES_STORE_LOCATION = new File("C:/Users/Hermann/Desktop/TemplateStore");
 	private Template fTemplate;
