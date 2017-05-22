@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.florianingerl.javacodedtemplates.feature_1.0.0.qualifier.jar" id="com.florianingerl.javacodedtemplates.feature" version="1.0.0.qualifier">
+      <category name="com.florianingerl.javacompletionproposals.category"/>
+   </feature>
+   <category-def name="com.florianingerl.javacompletionproposals.category" label="Completion proposals for the Java editor">
+      <description>
+         Completion proposals for the Java editor
+      </description>
+   </category-def>
+</site>
