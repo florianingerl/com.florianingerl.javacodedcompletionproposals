@@ -18,22 +18,24 @@ import com.florianingerl.javacodedcompletionproposals.JavaCodedTemplatePlugin;
 
 public class JavaCodedTemplatePreferencePage extends JavaTemplatePreferencePage {
 
-	public JavaCodedTemplatePreferencePage()
-	{
-		setPreferenceStore(JavaCodedTemplatePlugin.getDefault().getPreferenceStore() );
-		setTemplateStore(JavaCodedTemplatePlugin.getDefault().getTemplateStore() );
+	public JavaCodedTemplatePreferencePage() {
+		setPreferenceStore(JavaCodedTemplatePlugin.getDefault().getPreferenceStore());
+		setTemplateStore(JavaCodedTemplatePlugin.getDefault().getTemplateStore());
 	}
-	
+
 	/*
-	 * @see org.eclipse.ui.texteditor.templates.TemplatePreferencePage#createTemplateEditDialog2(org.eclipse.jface.text.templates.Template, boolean, boolean)
+	 * @see org.eclipse.ui.texteditor.templates.TemplatePreferencePage#
+	 * createTemplateEditDialog2(org.eclipse.jface.text.templates.Template,
+	 * boolean, boolean)
 	 */
 	@Override
 	protected Template editTemplate(Template template, boolean edit, boolean isNameModifiable) {
-		EditJavaCodedTemplateDialog dialog= new EditJavaCodedTemplateDialog(getShell(), template, edit, isNameModifiable, getContextTypeRegistry());
+		com.florianingerl.javacodedcompletionproposals.preferencepages.EditJavaCodedTemplateDialog dialog = new com.florianingerl.javacodedcompletionproposals.preferencepages.EditJavaCodedTemplateDialog(
+				getShell(), template, edit, isNameModifiable, getContextTypeRegistry());
 		if (dialog.open() == Window.OK) {
 			return dialog.getTemplate();
 		}
 		return null;
 	}
-	
+
 }

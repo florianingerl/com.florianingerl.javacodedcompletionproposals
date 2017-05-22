@@ -413,10 +413,11 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 	@Override
 	public String getDisplayString() {
 		if (fDisplayString == null) {
-			String[] arguments = new String[] { fTemplate.getName(), fTemplate.getDescription() };
-			// fDisplayString =
+			// String[] arguments = new String[] { fTemplate.getName(),
+			// fTemplate.getDescription() };
+
 			// JFaceTextTemplateMessages.getFormattedString("TemplateProposal.displayString",
-			// arguments); //$NON-NLS-1$
+			// arguments); // $NON-NLS-1$
 			fDisplayString = fTemplate.getName() + " - " + fTemplate.getDescription();
 		}
 		return fDisplayString;
