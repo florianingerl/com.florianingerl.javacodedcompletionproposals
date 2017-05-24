@@ -9,3 +9,9 @@ This is an Eclipse plugin that allows the user to write code templates (or code 
 
 Initial version.
 
+### Usage
+You can enter a new Java-coded template ( or edit an existing one ) via the menu Window -> Preferences -> Java -> Editor -> Java-coded templates. You should see a list of all your Java-coded templates displayed like in the following screenhot.
+
+![Screenshot1](screenshots/PreferencePage.PNG)
+
+
