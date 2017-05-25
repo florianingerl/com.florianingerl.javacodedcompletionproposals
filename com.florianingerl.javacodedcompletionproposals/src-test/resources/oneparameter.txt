@@ -1,0 +1,2 @@
+${var}
+${var2:(String var)->{return var.toUpperCase();}}

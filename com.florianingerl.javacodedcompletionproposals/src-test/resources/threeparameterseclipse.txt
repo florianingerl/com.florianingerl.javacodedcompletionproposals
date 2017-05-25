@@ -1,0 +1,4 @@
+${var}
+${var2}
+${var3}
+${var4:javaCoded(var,var2,var3)}

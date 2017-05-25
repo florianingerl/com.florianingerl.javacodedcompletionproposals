@@ -8,16 +8,11 @@ import org.eclipse.ui.PlatformUI;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
-public class EclipsePluginDependencyResolverModule extends AbstractModule {
+public class TestDependencyResolverModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
 
-	}
-
-	@Provides
-	public IWorkbenchWindow getActiveWorkbenchWindow() {
-		return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 	}
 
 	@Provides
@@ -26,7 +21,11 @@ public class EclipsePluginDependencyResolverModule extends AbstractModule {
 
 			@Override
 			public File getTemplateStoreDir() {
-				return JavaCodedTemplatePlugin.getDefault().getTemplateStoreDir();
+				File dir = new File("./javacodedtemplatestore");
+				if (!dir.exists()) {
+					dir.mkdir();
+				}
+				return dir;
 			}
 
 		};

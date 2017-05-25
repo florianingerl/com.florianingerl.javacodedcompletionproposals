@@ -1,0 +1,4 @@
+${var}
+${var2}
+${var3}
+${var4:(String var, String var2, String var3)->{ return var + var2 + var3; } }
