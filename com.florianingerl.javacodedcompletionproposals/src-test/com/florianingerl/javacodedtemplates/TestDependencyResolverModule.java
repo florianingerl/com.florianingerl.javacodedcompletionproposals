@@ -10,6 +10,12 @@ import com.google.inject.Provides;
 
 public class TestDependencyResolverModule extends AbstractModule {
 
+	private IJavaCompiler javaCompiler;
+
+	public TestDependencyResolverModule(IJavaCompiler javaCompiler) {
+		this.javaCompiler = javaCompiler;
+	}
+
 	@Override
 	protected void configure() {
 
@@ -29,6 +35,11 @@ public class TestDependencyResolverModule extends AbstractModule {
 			}
 
 		};
+	}
+
+	@Provides
+	public IJavaCompiler getJavaCompiler() {
+		return javaCompiler;
 	}
 
 }

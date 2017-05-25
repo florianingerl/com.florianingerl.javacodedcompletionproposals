@@ -178,10 +178,9 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 	private Class<?> getTemplateClass() {
 		if (templateClazz == null) {
 			try {
-				URL url = JavaCodedTemplatePlugin.getDefault().getTemplateStoreDir().toURI().toURL();
-				URL[] urls = new URL[] { url };
-				URLClassLoader classLoader = new URLClassLoader(urls);
-				templateClazz = classLoader.loadClass(fTemplate.getName());
+				templateClazz = ReflectionUtils.loadClass(
+						ServiceLocator.getInjector().getInstance(ITemplateStoreDirProvider.class).getTemplateStoreDir(),
+						fTemplate.getName());
 			} catch (MalformedURLException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -410,130 +409,14 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 		return new Point(fSelectedRegion.getOffset(), fSelectedRegion.getLength());
 	}
 
-	private static Method mClear;
-
-	private void clear() throws NoSuchMethodException, SecurityException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
-		if (mClear == null) {
-			mClear = JavaContext.class.getDeclaredMethod("clear");
-			mClear.setAccessible(true);
-		}
-		mClear.invoke(fContext);
-	}
-
-	private static Method mRewriteImports;
-
-	private void rewriteImports() throws NoSuchMethodException, SecurityException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
-		if (mRewriteImports == null) {
-			mRewriteImports = JavaContext.class.getDeclaredMethod("rewriteImports");
-			mRewriteImports.setAccessible(true);
-		}
-		mRewriteImports.invoke(fContext);
-	}
-
-	private static Method mGetJavaProject;
-
-	private IJavaProject getJavaProject() throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException {
-		if (mGetJavaProject == null) {
-			mGetJavaProject = CompilationUnitContext.class.getDeclaredMethod("getJavaProject");
-			mGetJavaProject.setAccessible(true);
-		}
-		return (IJavaProject) mGetJavaProject.invoke(fContext);
-	}
-
-	private static Method mGetIndentation;
-
-	private int getIndentation() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			NoSuchMethodException, SecurityException {
-		if (mGetIndentation == null) {
-			mGetIndentation = JavaContext.class.getDeclaredMethod("getIndentation");
-			mGetIndentation.setAccessible(true);
-		}
-		return (int) mGetIndentation.invoke(fContext);
-	}
-
-	private static Method mGetIndentation2;
-
-	private int getIndentation2() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			NoSuchMethodException, SecurityException {
-		if (mGetIndentation2 == null) {
-			mGetIndentation2 = JavaDocContext.class.getDeclaredMethod("getIndentation");
-			mGetIndentation2.setAccessible(true);
-		}
-		return (int) mGetIndentation2.invoke(fContext);
-	}
-
 	private TemplateBuffer getTemplateBuffer()
 			throws TemplateException, BadLocationException, NoSuchFieldException, SecurityException,
 			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		TemplateVariableResolver tvr = new JavaCodedTemplateVariableResolver(getTemplateClass());
-		fContext.getContextType().addResolver(tvr);
-		TemplateBuffer templateBuffer;
-		try {
-			JavaCodedTemplateTranslator translator = null;
-			if (fContext instanceof JavaContext) {
-				clear();
-				if (!fContext.canEvaluate(fTemplate))
-					throw new TemplateException("Cannot evaluate this template in this context!");
-				Field field = JavaContext.class.getDeclaredField("fVariables");
-				field.setAccessible(true);
 
-				translator = new JavaCodedTemplateTranslator() {
-					@Override
-					protected TemplateVariable createVariable(TemplateVariableType type, String name, int[] offsets) {
-						try {
-							MultiVariable variable = new JavaVariable(type, name, offsets);
-							((Map<String, MultiVariable>) field.get(fContext)).put(name, variable);
-							// fVariables.put(name, variable);
-							return variable;
-						} catch (IllegalArgumentException | IllegalAccessException nsme) {
-							return super.createVariable(type, name, offsets);
-						}
-					}
+		JavaCoded2EclipseTemplateConverter converter = new JavaCoded2EclipseTemplateConverter();
+		Template template = converter.convert(fTemplate, false);
 
-				};
-				templateBuffer = translator.translate(fTemplate, false);
-				fContext.getContextType().resolve(templateBuffer, fContext);
-
-				rewriteImports();
-
-				IPreferenceStore prefs = JavaPlugin.getDefault().getPreferenceStore();
-				boolean useCodeFormatter = prefs.getBoolean(PreferenceConstants.TEMPLATES_USE_CODEFORMATTER);
-
-				IJavaProject project = getJavaProject();
-				JavaFormatter formatter = new JavaFormatter(
-						TextUtilities.getDefaultLineDelimiter(((JavaContext) fContext).getDocument()), getIndentation(),
-						useCodeFormatter, project);
-				formatter.format(templateBuffer, fContext);
-
-				clear();
-
-			} else if (fContext instanceof JavaDocContext) {
-				translator = new JavaCodedTemplateTranslator();
-				templateBuffer = translator.translate(fTemplate, false);
-				fContext.getContextType().resolve(templateBuffer, fContext);
-
-				IPreferenceStore prefs = JavaPlugin.getDefault().getPreferenceStore();
-				boolean useCodeFormatter = prefs.getBoolean(PreferenceConstants.TEMPLATES_USE_CODEFORMATTER);
-
-				IJavaProject project = getJavaProject();
-				JavaFormatter formatter = new JavaFormatter(
-						TextUtilities.getDefaultLineDelimiter(((JavaDocContext) fContext).getDocument()),
-						getIndentation2(), useCodeFormatter, project);
-				formatter.format(templateBuffer, fContext);
-			} else {
-				translator = new JavaCodedTemplateTranslator();
-				templateBuffer = translator.translate(fTemplate, false);
-				fContext.getContextType().resolve(templateBuffer, fContext);
-			}
-
-			return templateBuffer;
-
-		} finally {
-			fContext.getContextType().removeResolver(tvr);
-		}
+		return fContext.evaluate(template);
 	}
 
 	@Override

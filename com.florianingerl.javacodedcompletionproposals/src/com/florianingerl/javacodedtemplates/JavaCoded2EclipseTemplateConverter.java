@@ -24,7 +24,7 @@ import com.florianingerl.util.regex.Pattern;
 public class JavaCoded2EclipseTemplateConverter {
 
 	private Template fTemplate;
-	private StringBuilder sbJavaSrcFile = new StringBuilder();
+	private StringBuilder sbJavaSrcFile;
 	private boolean fCompile;
 	private File javaSourceFile;
 
@@ -104,12 +104,13 @@ public class JavaCoded2EclipseTemplateConverter {
 			fCompile = !(new File(dir, fTemplate.getName() + ".class").exists());
 		}
 
+		sbJavaSrcFile = new StringBuilder();
 		if (fCompile)
 			sbJavaSrcFile.append("public class " + fTemplate.getName() + "{ ");
 		return convert();
 	}
 
-	public Template convert() throws TemplateException {
+	private Template convert() throws TemplateException {
 
 		String string = fTemplate.getPattern();
 		StringBuilder buffer = new StringBuilder();
@@ -158,20 +159,8 @@ public class JavaCoded2EclipseTemplateConverter {
 
 	private void compileClassFile() throws TemplateException {
 		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			PrintWriter errWriter = new PrintWriter(baos);
-
-			// BatchCompiler.compile("-help", new PrintWriter(System.out), new
-			// PrintWriter(System.err), null);
-			boolean success = BatchCompiler.compile(
-					javaSourceFile.getAbsolutePath() + " -d " + javaSourceFile.getParentFile().getAbsolutePath(),
-					new PrintWriter(new ByteArrayOutputStream()), errWriter, null);
-
-			if (!success) {
-				fail(baos.toString());
-
-			}
-		} catch (Exception e) {
+			ServiceLocator.getInjector().getInstance(IJavaCompiler.class).compile(javaSourceFile);
+		} catch (CompilationException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}

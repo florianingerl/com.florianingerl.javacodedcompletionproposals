@@ -606,7 +606,7 @@ public class EditJavaCodedTemplateDialog extends StatusDialog {
 
 		JavaCodedTemplateTranslator translator = new JavaCodedTemplateTranslator();
 		try {
-			translator.translate(template, true);
+			translator.translate(template);
 		} catch (TemplateException e) {
 			e.printStackTrace();
 			StatusInfo status = new StatusInfo();

@@ -1,7 +1,10 @@
 package com.florianingerl.javacodedtemplates;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintWriter;
 
+import org.eclipse.jdt.core.compiler.batch.BatchCompiler;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -30,6 +33,11 @@ public class EclipsePluginDependencyResolverModule extends AbstractModule {
 			}
 
 		};
+	}
+
+	@Provides
+	public IJavaCompiler getJavaCompiler() {
+		return new JavaCompiler();
 	}
 
 }

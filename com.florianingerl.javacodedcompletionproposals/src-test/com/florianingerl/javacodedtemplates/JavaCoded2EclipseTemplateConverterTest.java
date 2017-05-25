@@ -16,23 +16,89 @@ import org.eclipse.jface.text.templates.TemplateException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.florianingerl.util.regex.Capture;
+import com.florianingerl.util.regex.Matcher;
+import com.florianingerl.util.regex.Pattern;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class JavaCoded2EclipseTemplateConverterTest {
 
-	@BeforeClass
+	private static final Pattern PATTERN_LAMBDA = Pattern.compile(JavaCoded2EclipseTemplateConverter.PATTERN_LAMBDA);
+
+	private static boolean javaCompilerCalled = false;
+
+	private static void check(String lambda, String argumentsInBrackets, String[] arguments, String functionBody) {
+		Matcher matcher = PATTERN_LAMBDA.matcher(lambda);
+		assertTrue(matcher.matches());
+
+		assertEquals(argumentsInBrackets, matcher.group("arguments"));
+		assertEquals(functionBody, matcher.group("body"));
+
+		assertArrayEquals(arguments, matcher.captures("argument").stream().map((Capture capture) -> {
+			return capture.getValue();
+		}).toArray());
+	}
+
+	@Test
+	public void testOneParamter() {
+		String lambda = " ( String first ) -> { return first.toUpperCase(); } ";
+		check(lambda, "( String first )", new String[] { "first" }, "{ return first.toUpperCase(); }");
+	}
+
+	@Test
+	public void testTwoParameters() {
+		String lambda = " ( String first ,String second) - > { return first + second; } ";
+		check(lambda, "( String first ,String second)", new String[] { "first", "second" },
+				"{ return first + second; }");
+	}
+
+	@Test
+	public void testThreeParameters() {
+		String lambda = " (String first, String second ,String third  )->{ return first + second + third; } ";
+		check(lambda, "(String first, String second ,String third  )", new String[] { "first", "second", "third" },
+				"{ return first + second + third; }");
+	}
+
+	@Test
+	public void testCommentsAndStringsInFunctionBody() {
+		String body = "{ /* }{\" */ return s; }"; // String s = \" }{ \\\"\"; //
+													// Comment until end of line
+													// }{\" \n { String b =
+													// \"}\"; /* } */ // }\n }
+													// return s; } ";
+		String lambda = " (String first) -> " + body;
+		check(lambda, "(String first)", new String[] { "first" }, body);
+	}
+
 	public static void initialize() {
 		if (ServiceLocator.getInjector() == null) {
-			Injector injector = Guice.createInjector(new TestDependencyResolverModule());
+			IJavaCompiler javaCompiler = new IJavaCompiler() {
+
+				private IJavaCompiler jc = new JavaCompiler();
+
+				@Override
+				public void compile(File srcFile) throws CompilationException {
+					javaCompilerCalled = true;
+					jc.compile(srcFile);
+				}
+
+			};
+			Injector injector = Guice.createInjector(new TestDependencyResolverModule(javaCompiler));
 			ServiceLocator.setInjector(injector);
 		}
 	}
 
-	private String readResource(String resource) {
+	@BeforeClass
+	public static void setUpBeforeClass() {
+		initialize();
+	}
+
+	static String readResource(String resource) {
 		String s = null;
 		try {
-			s = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("resources/" + resource));
+			s = IOUtils.toString(JavaCoded2EclipseTemplateConverterTest.class.getClassLoader()
+					.getResourceAsStream("resources/" + resource));
 		} catch (IOException e) {
 			e.printStackTrace();
 			assertFalse(true);
@@ -119,7 +185,41 @@ public class JavaCoded2EclipseTemplateConverterTest {
 
 	}
 
-	private void deleteDir(File dir) {
+	@Test
+	public void compileOnlyIfNeededTest() throws TemplateException {
+		File dir = ServiceLocator.getInjector().getInstance(ITemplateStoreDirProvider.class).getTemplateStoreDir();
+		deleteDir(dir);
+
+		String pattern = readResource("oneparameter.txt");
+		Template template = new Template("oneparameter", "description", "Java", pattern, false);
+		JavaCoded2EclipseTemplateConverter converter = new JavaCoded2EclipseTemplateConverter();
+
+		// class file doesn't exist, parameter false
+		javaCompilerCalled = false;
+		converter.convert(template, false);
+		assertTrue(javaCompilerCalled);
+
+		deleteDir(dir);
+		// class file doesn't exist, parameter true
+		javaCompilerCalled = false;
+		converter.convert(template, true);
+		assertTrue(javaCompilerCalled);
+
+		// class file exits, parameter false
+		javaCompilerCalled = false;
+		assertTrue(new File(dir, "oneparameter.class").exists());
+		converter.convert(template, false);
+		assertFalse(javaCompilerCalled);
+
+		// class file exits, parameter true
+		javaCompilerCalled = false;
+		assertTrue(new File(dir, "oneparameter.class").exists());
+		converter.convert(template, true);
+		assertTrue(javaCompilerCalled);
+
+	}
+
+	static void deleteDir(File dir) {
 		for (File file : dir.listFiles()) {
 			assertTrue(file.delete());
 		}
