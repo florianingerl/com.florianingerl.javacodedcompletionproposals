@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: javacodedtemplates
 Bundle-SymbolicName: com.florianingerl.javacodedtemplates;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.1.qualifier
 Bundle-Activator: com.florianingerl.javacodedtemplates.Activator
 Bundle-Vendor: Florian Ingerl
 Require-Bundle: org.eclipse.ui,
