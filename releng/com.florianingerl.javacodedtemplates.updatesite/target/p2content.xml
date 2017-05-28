@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='1'>
+  <unit id='201705281147.javacompletionproposals' version='1.0.0.2-1cNpVnh7735G3C7I55AG'>
+    <properties size='2'>
+      <property name='org.eclipse.equinox.p2.name' value='Completion proposals for the Java editor'/>
+      <property name='org.eclipse.equinox.p2.type.category' value='true'/>
+    </properties>
+    <provides size='1'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='201705281147.javacompletionproposals' version='1.0.0.2-1cNpVnh7735G3C7I55AG'/>
+    </provides>
+    <requires size='1'>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.florianingerl.javacodedtemplates.feature.feature.group' range='[1.0.1.201705281147,1.0.1.201705281147]'/>
+    </requires>
+    <touchpoint id='null' version='0.0.0'/>
+  </unit>
+</units>

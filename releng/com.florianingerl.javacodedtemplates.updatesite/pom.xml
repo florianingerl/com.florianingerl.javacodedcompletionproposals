@@ -1,0 +1,14 @@
+
+
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.florianingerl.eclipseplugins</groupId>
+        <artifactId>com.florianingerl.javacodedtemplates.releng</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>com.florianingerl.javacodedtemplates.updatesite</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+    <packaging>eclipse-repository</packaging>
+</project>
+

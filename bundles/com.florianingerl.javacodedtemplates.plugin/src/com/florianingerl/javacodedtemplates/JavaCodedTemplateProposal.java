@@ -284,8 +284,9 @@ public class JavaCodedTemplateProposal implements ICompletionProposal, ICompleti
 				Method m = ReflectionUtils.findAnyMethod(getTemplateClass(), variable.getName());
 
 				List<LinkedPositionGroup> dependencyGroups = new LinkedList<LinkedPositionGroup>();
-				variable.getVariableType().getParams().stream().forEach((String s) -> {
-					LinkedPositionGroup g = map.get(s);
+
+				variable.getVariableType().getParams().stream().forEach((Object s) -> {
+					LinkedPositionGroup g = map.get(s.toString());
 					g.addDependentGroup(group);
 					dependencyGroups.add(g);
 				});

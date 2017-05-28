@@ -5,6 +5,8 @@ This is an Eclipse plugin that allows the user to write code templates (or code 
 
 ### What's new :star:
 
+### Version 1.0.1
+
 ### Version 1.0.0
 
 Initial version.
