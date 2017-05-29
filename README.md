@@ -25,6 +25,6 @@ After having successfully written your template, just type the first letters of 
 
 ### Installation
 
-In Eclipse, select the menu Help -> Install New Software. Then enter the url https://github.com/florianingerl/com.florianingerl.javacodedcompletionproposals/raw/master/com.florianingerl.javacompletionproposals.feature/updatesite and hit next, accept and finish until the plugin is installed.
+In Eclipse, select the menu Help -> Install New Software. Then enter the url https://github.com/florianingerl/com.florianingerl.javacodedcompletionproposals/raw/master/releng/com.florianingerl.javacodedtemplates.updatesite/target/repository and hit next, accept and finish until the plugin is installed.
 
 
