@@ -43,7 +43,7 @@ public class TemplateTranslatorTest {
 
 			e.printStackTrace();
 			if (good)
-				assertTrue(false);
+				assertTrue(e.getMessage(), false);
 			else
 				return;
 		}

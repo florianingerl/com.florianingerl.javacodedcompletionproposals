@@ -72,21 +72,21 @@ public class JavaCoded2EclipseTemplateConverterTest {
 	}
 
 	public static void initialize() {
-		if (ServiceLocator.getInjector() == null) {
-			IJavaCompiler javaCompiler = new IJavaCompiler() {
 
-				private IJavaCompiler jc = new JavaCompiler();
+		IJavaCompiler javaCompiler = new IJavaCompiler() {
 
-				@Override
-				public void compile(File srcFile) throws CompilationException {
-					javaCompilerCalled = true;
-					jc.compile(srcFile);
-				}
+			private IJavaCompiler jc = new JavaCompiler();
 
-			};
-			Injector injector = Guice.createInjector(new TestDependencyResolverModule(javaCompiler));
-			ServiceLocator.setInjector(injector);
-		}
+			@Override
+			public void compile(File srcFile) throws CompilationException {
+				javaCompilerCalled = true;
+				jc.compile(srcFile);
+			}
+
+		};
+		Injector injector = Guice.createInjector(new TestDependencyResolverModule(javaCompiler));
+		ServiceLocator.setInjector(injector);
+
 	}
 
 	@BeforeClass
@@ -101,7 +101,7 @@ public class JavaCoded2EclipseTemplateConverterTest {
 					.getResourceAsStream("resources/" + resource));
 		} catch (IOException e) {
 			e.printStackTrace();
-			assertFalse(true);
+			assertTrue(e.getMessage(), false);
 		}
 		return s;
 	}
@@ -116,7 +116,7 @@ public class JavaCoded2EclipseTemplateConverterTest {
 			template2 = jc2etc.convert(template, false);
 		} catch (TemplateException e) {
 			e.printStackTrace();
-			assertTrue(false);
+			assertTrue(e.getMessage(), false);
 		}
 
 		String pattern2 = readResource(templateName + "eclipse.txt");
@@ -152,7 +152,7 @@ public class JavaCoded2EclipseTemplateConverterTest {
 				assertEquals(testData.expected, (String) m.invoke(null, testData.parameters));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				e.printStackTrace();
-				assertTrue(false);
+				assertTrue(e.getMessage(), false);
 			}
 		}
 
@@ -220,10 +220,14 @@ public class JavaCoded2EclipseTemplateConverterTest {
 	}
 
 	static void deleteDir(File dir) {
-		for (File file : dir.listFiles()) {
-			assertTrue(file.delete());
+		if (dir.listFiles() != null) {
+			for (File file : dir.listFiles()) {
+				assertTrue(file.delete());
+			}
 		}
-		assertTrue(dir.delete());
+		if (dir.exists()) {
+			assertTrue(dir.delete());
+		}
 	}
 
 }

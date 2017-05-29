@@ -100,7 +100,7 @@ public class JavaCoded2EclipseTemplateConverter {
 		fCompile = compile;
 
 		if (!fCompile) {
-			File dir = ServiceLocator.getInjector().getInstance(ITemplateStoreDirProvider.class).getTemplateStoreDir();
+			File dir = getTemplateStoreDir();
 			fCompile = !(new File(dir, fTemplate.getName() + ".class").exists());
 		}
 
@@ -166,21 +166,26 @@ public class JavaCoded2EclipseTemplateConverter {
 		}
 	}
 
-	private void writeJavaSourceFile() {
+	private void writeJavaSourceFile() throws TemplateException {
 		try {
-			File dir = ServiceLocator.getInjector().getInstance(ITemplateStoreDirProvider.class).getTemplateStoreDir();
+			File dir = getTemplateStoreDir();
 			javaSourceFile = new File(dir, fTemplate.getName() + ".java");
 			PrintWriter writer = new PrintWriter(javaSourceFile);
 			writer.println(sbJavaSrcFile);
 			writer.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			fail(e.getMessage());
 		}
 
 	}
 
 	private void fail(String message) throws TemplateException {
 		throw new TemplateException(message);
+	}
+
+	private File getTemplateStoreDir() {
+		return ServiceLocator.getInjector().getInstance(ITemplateStoreDirProvider.class).getTemplateStoreDir();
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.florianingerl.javacodedtemplates;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 
 import org.eclipse.ui.IWorkbenchWindow;
@@ -27,9 +29,11 @@ public class TestDependencyResolverModule extends AbstractModule {
 
 			@Override
 			public File getTemplateStoreDir() {
-				File dir = new File("./javacodedtemplatestore");
+				File dir = new File(System.getProperty("user.home"));
+				System.out.println("HomeDir=" + dir.getAbsolutePath());
+				dir = new File(dir, "javacodedtemplatestore");
 				if (!dir.exists()) {
-					dir.mkdir();
+					assertTrue("Directory could not be created!", dir.mkdir());
 				}
 				return dir;
 			}
