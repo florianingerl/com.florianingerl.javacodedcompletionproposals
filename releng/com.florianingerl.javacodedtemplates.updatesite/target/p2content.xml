@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <units size='1'>
-  <unit id='201705291504.javacompletionproposals' version='1.0.0.2-1cNpVnh7735G3C7K5C3A'>
+  <unit id='201705291525.javacompletionproposals' version='1.0.0.2-1cNpVnh7735G3C7K5C7C'>
     <properties size='2'>
       <property name='org.eclipse.equinox.p2.name' value='Completion proposals for the Java editor'/>
       <property name='org.eclipse.equinox.p2.type.category' value='true'/>
     </properties>
     <provides size='1'>
-      <provided namespace='org.eclipse.equinox.p2.iu' name='201705291504.javacompletionproposals' version='1.0.0.2-1cNpVnh7735G3C7K5C3A'/>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='201705291525.javacompletionproposals' version='1.0.0.2-1cNpVnh7735G3C7K5C7C'/>
     </provides>
     <requires size='1'>
-      <required namespace='org.eclipse.equinox.p2.iu' name='com.florianingerl.javacodedtemplates.feature.feature.group' range='[1.0.1.201705291504,1.0.1.201705291504]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.florianingerl.javacodedtemplates.feature.feature.group' range='[1.0.1.201705291525,1.0.1.201705291525]'/>
     </requires>
     <touchpoint id='null' version='0.0.0'/>
   </unit>
